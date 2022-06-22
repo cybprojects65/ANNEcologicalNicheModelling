@@ -1,3 +1,4 @@
-# Feed Forward Artificial Neural Networks - based Ecological Niche Model
+# Feed Forward Artificial Neural Networks-based Ecological Niche Model
 
-Ecological Niche Model with Feed Forward Artificial Neural Networks
+Ecological Niche Model with Feed Forward Artificial Neural Networks.
+Depends on ASCFileManagement and SimpleFeedForwardNeuralNetwork.
