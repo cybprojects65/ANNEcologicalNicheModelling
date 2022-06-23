@@ -1,6 +1,7 @@
 package org.cnr.datanalysis.ecomod.featureextraction;
 
 import java.io.File;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,12 @@ import it.cnr.raster.asc.filemanagement.AscRaster;
 import it.cnr.raster.asc.filemanagement.AscRasterReader;
 import it.cnr.raster.asc.filemanagement.utils.Triple;
 
-public class Observations {
+public class Observations implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public List<Triple> observationset;
 
 	public int getNumberOfObservations() {

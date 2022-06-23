@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,10 +15,6 @@ import org.gcube.ann.feedforwardann.DichotomicANN;
 
 public class ANNTraining {
 
-	
-
-	
-	
 	public static List<String> buildTopologyString(String initialTopology, int min[], int max[], int step[],int idx){
 		
 		if (idx>=min.length)
@@ -49,7 +44,7 @@ public class ANNTraining {
 	
 	//search for the best topology: growing strategy
 	public static File findOptimalModel(int minNeurons[],int maxNeurons[], int neuronStep [], String species, File basePathOccurrences, File basePathEnvironmentalFeatures, int nfolds,
-			double learningThreshold, int numberOfCycles, float learningRate, boolean balanceTrainingSet) throws Exception{
+			double learningThreshold, int numberOfCycles, float learningRate, boolean balanceTrainingSet, boolean reduceDimensionality) throws Exception{
 		
 		List<File> allResults = new ArrayList<>();
 		List<String> allTopologies = new ArrayList<>();;
@@ -76,7 +71,7 @@ public class ANNTraining {
 			System.out.println("TESTING TOPOLOGY : "+topology);
 			ANNTraining trainer = new ANNTraining(species, basePathOccurrences, basePathEnvironmentalFeatures, nfolds, learningThreshold, numberOfCycles, learningRate, topology);
 			trainer.skipFeature = -1;
-			trainer.init(balanceTrainingSet);
+			trainer.init(balanceTrainingSet,reduceDimensionality);
 			trainer.evaluate();
 			allResults.add(trainer.provenanceFile);
 			System.out.println("TOPOLOGY : "+topology+ " SAVED IN "+trainer.provenanceFile +"\n");
@@ -155,6 +150,8 @@ public class ANNTraining {
 	public File provenanceFile;
 	public File basePathTSFolds;
 	public File mainTrainingSet;
+	public File mainFeatureExtractor;
+	
 	public double averageAccuracyNFold;
 	public int skipFeature = -1;
 	
@@ -170,7 +167,8 @@ public class ANNTraining {
 		this.layerS = neuronsperlayer;
 	}
 
-	public void init(boolean balance) throws Exception {
+
+	public void init(boolean balance, boolean reduceDimensionality) throws Exception {
 		sessionID = "" + UUID.randomUUID();
 		basePathTS = new File("./trainingsets/" + species + "_" + sessionID);
 		if (!basePathTS.exists())
@@ -181,7 +179,9 @@ public class ANNTraining {
 			basePathTSFolds.mkdir();
 
 		TrainingSetManager manager = new TrainingSetManager();
-		mainTrainingSet = manager.generateTrainingSet(species, basePathTS, basePathOccurrences, basePathEnvironmentalFeatures,balance);
+		mainTrainingSet = manager.generateTrainingSet(species, basePathTS, basePathOccurrences, basePathEnvironmentalFeatures,balance,reduceDimensionality);
+		mainFeatureExtractor = manager.occurrenceEnrichmentFile;
+		
 		manager.sample8020ManyFold(basePathTSFolds, folds);
 
 	}
@@ -245,6 +245,7 @@ public class ANNTraining {
 		fw.write("TOPOLOGY="+layerS+"\n");
 		fw.write("TRAINED_ANN="+trainingSetANN.getName()+"\n");
 		fw.write("TRAINED_ANN_TRAINING_SET="+mainTrainingSet.getName()+"\n");
+		fw.write("TRAINED_FEATURE_EXTRACTOR="+mainFeatureExtractor.getName()+"\n");
 		fw.write("TRAINED_ANN_PROJECTION="+trainingSetProjection.getName()+"\n");
 		fw.write("SESSION_ID="+sessionID+"\n");
 		fw.write("FEATURE_SKIPPED="+skipFeature+"\n");

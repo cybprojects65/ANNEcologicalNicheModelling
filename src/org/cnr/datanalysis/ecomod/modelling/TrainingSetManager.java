@@ -3,8 +3,10 @@ package org.cnr.datanalysis.ecomod.modelling;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +27,11 @@ public class TrainingSetManager {
 		
 		String species = "Carcharodon carcharias";
 		int folds = 1;
-		boolean balance = true;
+		boolean balance = false;
+		boolean reduceDimensionality = true;
 		
 		TrainingSetManager manager = new TrainingSetManager();
-		manager.generateTrainingSet(species, basePathTrainingSet, basePathOccurrences, basePathEnvironmentalFeatures,balance);
+		manager.generateTrainingSet(species, basePathTrainingSet, basePathOccurrences, basePathEnvironmentalFeatures,balance, reduceDimensionality);
 		//manager.sample8020ManyFold(basePathNFoldTrainingSet, folds);
 	}
 	
@@ -124,13 +127,20 @@ public class TrainingSetManager {
 	
 	
 	public File trainingSetFile;
-	public File generateTrainingSet(String species, File basePathTrainingSet, File basePathOccurrences, File basePathEnvironmentalFeatures, boolean balance) throws Exception{
+	public File occurrenceEnrichmentFile;
+	
+	public File generateTrainingSet(String species, File basePathTrainingSet, File basePathOccurrences, File basePathEnvironmentalFeatures, boolean balance, boolean reduceDimensionality) throws Exception{
 		File trainingSetFile = new File(basePathTrainingSet,species.toLowerCase().replace(" ", "_")+".csv");
+		File occurrenceEnrichmentFile = new File(basePathTrainingSet,species.toLowerCase().replace(" ", "_")+".fe");
 		Observations observations = new Observations();
 		observations.buildObservations(species, basePathOccurrences,balance);
 		OccurrenceEnrichment enricher = new OccurrenceEnrichment(observations);
-		enricher.enrichOccurrences(basePathEnvironmentalFeatures);
+		enricher.enrichOccurrences(basePathEnvironmentalFeatures,reduceDimensionality);
 		enricher.save(trainingSetFile);
+		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(occurrenceEnrichmentFile));
+		oos.writeObject(enricher);
+		oos.close();
+		this.occurrenceEnrichmentFile = occurrenceEnrichmentFile;
 		this.trainingSetFile = trainingSetFile;
 		System.out.println("Training set file saved to "+trainingSetFile.getAbsolutePath());
 		if (balance)

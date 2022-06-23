@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Properties;
@@ -18,28 +19,18 @@ import it.cnr.raster.asc.processing.generalpurpose.CSVToASCConverter;
 
 public class ANNEcologicalNicheModel {
 
-	public static void main(String args[]) throws Exception{
-		File provenanceFile = new File ("./trainingsets\\Carcharodon carcharias_008f10fc-9cc9-427a-bb8d-d56cdd68d024\\Parameters.txt");
-		//File projectionFile = new File ("./trainingsets\\Carcharodon carcharias_90n1L\\carcharodon_carcharias.csv");
-		File environmentalFiles = new File ("./environmentalfeatures/Global/");
 		
-		ANNEcologicalNicheModel annENM = new ANNEcologicalNicheModel(provenanceFile);
-		//direct projection
-		//File projectedAnnENM = annENM.project(projectionFile);
-		File  projectedAnnENM = annENM.ENM(environmentalFiles);
-		System.out.println("ANN projection is in "+projectedAnnENM.getAbsolutePath());
-		System.out.println("ASC ANN projection is in "+projectedAnnENM.getAbsolutePath().replace(".csv", ".asc"));
-	}
-	
 	public File preTrainedANN;
+	public File preTrainedFE;
 	public double spatialResolution;
 	
 	public ANNEcologicalNicheModel(File provenanceFile) throws Exception{
 		this.preTrainedANN = getANNFile(provenanceFile);
+		this.preTrainedFE = getFeatureExtractorFile(provenanceFile);
 	}
 	
-	public File ENM(File basePathEnvironmentalFeatures) throws Exception{
-		File featureFile = generateFeatureFile(basePathEnvironmentalFeatures,preTrainedANN.getParentFile());
+	public File ENM(File basePathEnvironmentalFeatures, boolean reduceDimensionality) throws Exception{
+		File featureFile = generateFeatureFile(basePathEnvironmentalFeatures,preTrainedANN.getParentFile(),reduceDimensionality);
 		File projection = project(featureFile);
 		File newProjectionFolder = new File(projection.getParentFile(),"ENM");
 		
@@ -70,14 +61,28 @@ public class ANNEcologicalNicheModel {
 		return newProjectionFile;
 	}
 	
-	public File generateFeatureFile(File basePathEnvironmentalFeatures, File destinationFolder) throws Exception{
+	public File generateFeatureFile(File basePathEnvironmentalFeatures, File destinationFolder, boolean reduceDimensionality) throws Exception{
 		File environmentalFeatureFile = new File(destinationFolder,basePathEnvironmentalFeatures.getName()+".csv");
 		Observations observations = new Observations();
 		observations.buildObservations(basePathEnvironmentalFeatures);
 		spatialResolution = observations.obsResolution;
+		OccurrenceEnrichment enricher = null;
+		/*
+		if (reduceDimensionality) {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(preTrainedFE));
+			 enricher = (OccurrenceEnrichment) ois.readObject();//new OccurrenceEnrichment(observations);
+			 enricher.setObservations(observations);
+			ois.close();
+		}else
+			enricher = new OccurrenceEnrichment(observations);
+		*/
 		
-		OccurrenceEnrichment enricher = new OccurrenceEnrichment(observations);
-		enricher.enrichOccurrences(basePathEnvironmentalFeatures);
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream(preTrainedFE));
+		 enricher = (OccurrenceEnrichment) ois.readObject();//new OccurrenceEnrichment(observations);
+		 enricher.setObservations(observations);
+		ois.close();
+		
+		enricher.enrichOccurrences(basePathEnvironmentalFeatures,reduceDimensionality);
 		enricher.save(environmentalFeatureFile);
 		
 		System.out.println("Feature set file saved to "+environmentalFeatureFile.getAbsolutePath());
@@ -94,6 +99,14 @@ public class ANNEcologicalNicheModel {
 		return f;
 	}
 
+	public static File getFeatureExtractorFile(File provenanceFile) throws Exception{
+		Properties p = new Properties();
+		p.load(new FileInputStream(provenanceFile));
+		String pathToFE = p.getProperty("TRAINED_FEATURE_EXTRACTOR");
+		File f = new File(provenanceFile.getParent(), pathToFE);
+		return f;
+	}
+	
 	
 	public File project(File fileWithCoordinatesAndFeatureColumns) throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(fileWithCoordinatesAndFeatureColumns));

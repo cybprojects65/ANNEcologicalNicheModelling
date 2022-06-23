@@ -17,6 +17,7 @@ public class ANNOptimalModelFinder {
 		double learningThreshold = 0.0001;//0.0001;
 		int numberOfCycles = 5000;//5000;
 		boolean balance = false;
+		boolean reduceDimensionality = true;
 		float learningRate = 0.5f;//0.5f;
 		int nfolds = 10;
 		
@@ -42,17 +43,17 @@ public class ANNOptimalModelFinder {
 				
 		
 		//one layer refinement 1
-		
-		int minNeurons []= {10};
-		int maxNeurons []= {150};
-		int neuronStep []= {10};
-		
-		//one layer refinement 2
 		/*
-		int minNeurons []= {80};
-		int maxNeurons []= {100};
+		int minNeurons []= {10};
+		int maxNeurons []= {200};
+		int neuronStep []= {10};
+		*/
+		//one layer refinement 2
+		
+		int minNeurons []= {40};
+		int maxNeurons []= {70};
 		int neuronStep []= {5};
-		*/		
+		
 		
 		//one layer selected
 		/*		
@@ -64,7 +65,7 @@ public class ANNOptimalModelFinder {
 					
 		File bestModel = ANNTraining.findOptimalModel(minNeurons, maxNeurons, neuronStep, 
 				species, basePathOccurrences, basePathEnvironmentalFeatures, nfolds, 
-				learningThreshold, numberOfCycles, learningRate, balance);
+				learningThreshold, numberOfCycles, learningRate, balance,reduceDimensionality);
 		
 	}
 }

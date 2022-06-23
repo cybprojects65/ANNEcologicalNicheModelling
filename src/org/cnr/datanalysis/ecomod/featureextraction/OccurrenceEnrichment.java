@@ -3,26 +3,38 @@ package org.cnr.datanalysis.ecomod.featureextraction;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.cnr.datanalysis.ecomod.featureselection.FeatureSelector;
 
 import it.cnr.raster.asc.filemanagement.AscRaster;
 import it.cnr.raster.asc.filemanagement.AscRasterManager;
 import it.cnr.raster.asc.filemanagement.AscRasterReader;
 import it.cnr.raster.asc.filemanagement.utils.Triple;
 
-public class OccurrenceEnrichment {
+public class OccurrenceEnrichment implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	Observations observations;
 	FeatureVector[] features;
-
+	FeatureSelector featureSelector;
+	
 	public OccurrenceEnrichment(Observations observations) {
 
 		this.observations = observations;
 
 	}
 
-	public void enrichOccurrences(File featureFilesBasepath) throws Exception {
+	public void setObservations(Observations observations) {
+		this.observations = observations;
+	}
+	
+	public void enrichOccurrences(File featureFilesBasepath, boolean doFeatureSelection) throws Exception {
 
 		File[] fileList = featureFilesBasepath.listFiles();
 		List<File> viableFeatureFiles = new ArrayList<>();
@@ -58,6 +70,14 @@ public class OccurrenceEnrichment {
 		}
 		
 		discardIncompleteVectors();
+		
+		if (doFeatureSelection) {
+			if (featureSelector==null) {
+				featureSelector = new FeatureSelector();
+				features = featureSelector.selectFeaturesWithPCA(features);
+			}else
+				features = featureSelector.resizeFeaturesWithPCA(features);
+		}
 
 	}
 

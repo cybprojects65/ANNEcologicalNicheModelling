@@ -1,7 +1,13 @@
 package org.cnr.datanalysis.ecomod.featureextraction;
 
-public class FeatureVector {
+import java.io.Serializable;
 
+public class FeatureVector implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public double x;
 	public double y;
 	public double ANNTarget;
