@@ -87,8 +87,8 @@ public class OccurrenceEnrichment implements Serializable{
 		for (int i = 0; i < features.length; i++) {
 			FeatureVector f = features[i];
 			if (f.incomplete) {
-				System.out
-						.println("Discarding point " + f.x + "," + f.y + " for incompleteness on F" + f.incompleteIdx);
+				//System.out
+					//	.println("Discarding point " + f.x + "," + f.y + " for incompleteness on F" + f.incompleteIdx);
 				discarded++;
 			} else
 				flist.add(f);
@@ -112,7 +112,7 @@ public class OccurrenceEnrichment implements Serializable{
 		Double value = AscRasterManager.getValue(longitude, latitude, asc);
 
 		if (value == Double.parseDouble(asc.NDATA)) {
-			System.out.println("No data for "+x+","+y);
+			//System.out.println("No data for "+x+","+y);
 			value = null;
 		}
 		return value;
