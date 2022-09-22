@@ -61,6 +61,7 @@ public class Main {
 		
 		if (args.length>0) {
 			//summarize parameters
+			System.out.println("V2.0");
 			System.out.println("SUMMARY OF THE INPUT PARAMETERS:");
 
 			species = args[0];
